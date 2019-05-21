@@ -11,6 +11,7 @@ public class ReconApplicationTests {
 
 	@Test
 	public void contextLoads() {
+		System.out.println("Hellow there");
 	}
 
 }
