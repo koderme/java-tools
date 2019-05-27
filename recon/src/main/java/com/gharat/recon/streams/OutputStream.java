@@ -1,14 +1,12 @@
 package com.gharat.recon.streams;
 
-import com.gharat.recon.model.AllComparisonResult;
+import com.gharat.recon.model.AllParsedRowComparisonResult;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 
 public abstract class OutputStream {
 
-    List<String> lineList = new LinkedList<>();
+    public abstract void write(AllParsedRowComparisonResult compareResult);
 
-    abstract int writeData(AllComparisonResult compareResult) throws IOException;
+    public abstract void flush() throws IOException;
 }

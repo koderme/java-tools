@@ -1,12 +1,9 @@
 package com.gharat.recon.streams;
 
-import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
-
-import java.io.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class FileInputStream extends InputStream {
 
