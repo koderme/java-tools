@@ -23,18 +23,20 @@ public class XlsFileOutputStream extends OutputStream {
     private static final Logger logger = LogManager.getLogger(XlsFileOutputStream.class);
 
     String outputFilepath;
-    XSSFWorkbook workbook = XlsxUtil.createWorkBook();
-    XSSFSheet sheet = XlsxUtil.createSheet(this.workbook, "details");
-    XSSFTable table = XlsxUtil.createTable(this.workbook, this.sheet, "comparison-table");
+    XSSFWorkbook workbook;
+    XSSFSheet sheet;
+    XSSFTable table;
     int rowIndex = 0;
 
-    //private CellStyle cellStyleForMatched =
-    //XlsxUtil.createCellSyle(this.workbook, IndexedColors.LIGHT_GREEN, IndexedColors.AUTOMATIC);
-    private CellStyle cellStyleForUnMatched =
-            XlsxUtil.createCellSyle(this.workbook, IndexedColors.LIGHT_YELLOW, IndexedColors.AUTOMATIC);
+    private CellStyle cellStyleForUnMatched;
 
     public XlsFileOutputStream(String outputFilepath) {
         this.outputFilepath = outputFilepath;
+        workbook = XlsxUtil.createWorkBook();
+        sheet = XlsxUtil.createSheet(this.workbook, "details");
+        table = XlsxUtil.createTable(this.workbook, this.sheet, "comparison-table", "A1:C11");
+        CellStyle cellStyleForUnMatched =
+                XlsxUtil.createCellStyle(this.workbook, IndexedColors.LIGHT_YELLOW, IndexedColors.AUTOMATIC);
     }
 
     @Override
@@ -63,6 +65,9 @@ public class XlsFileOutputStream extends OutputStream {
      */
     private void writeRow(ParsedRow parsedRow, ParsedRowComparisonResult matchedResult, String source) {
 
+        if (false) {
+            return;
+        }
         // Set the values for the table
         XSSFRow xlsRow = this.sheet.createRow(this.rowIndex++);
 
