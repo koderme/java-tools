@@ -29,6 +29,10 @@ public class XlsFileOutputStream extends OutputStream {
     XSSFWorkbook workbook;
     XSSFSheet sheet;
 
+    private static final String[] columnsBeforeData = {"source"};
+    private static final String[] columnsAfterData = {"mismatch-count"};
+
+
     private CellStyle cellStyleForUnMatched;
 
     public XlsFileOutputStream(String outputFilepath) {
@@ -51,20 +55,46 @@ public class XlsFileOutputStream extends OutputStream {
 
         // Print only LHS header
         if (this.rowIndex == -1) {
-            writeRow(compareResult.getLhsRow(), null, "lhs");
+            writeHeaderRow(columnsBeforeData, compareResult.getLhsRow(), columnsAfterData);
             return;
         }
 
         // Print LHS
-        writeRow(compareResult.getLhsRow(), null, "lhs");
+        writeDataRow(compareResult.getLhsRow(), null, "lhs");
 
         // Write RHS
         while (rhsRowIterator.hasNext() && rhsComparisonResultIterator.hasNext()) {
             ParsedRow rhsParsedRow = rhsRowIterator.next();
             ParsedRowComparisonResult parsedRowComparisonResult = rhsComparisonResultIterator.next();
 
-            writeRow(rhsParsedRow, parsedRowComparisonResult, "rhs");
+            writeDataRow(rhsParsedRow, parsedRowComparisonResult, "rhs");
         }
+    }
+
+    private void writeHeaderRow(String[] columnsBeforeData, ParsedRow parsedRow, String[] columnsAfterData) {
+        this.rowIndex++;
+
+        // Set the values for the table
+        XSSFRow xlsRow = this.sheet.createRow(this.rowIndex);
+
+        int colIndex = 0;
+        for (String column : columnsBeforeData) {
+            xlsRow.createCell(colIndex++).setCellValue(column);
+        }
+
+        Iterator<Object> objectIterator = parsedRow.iterator();
+
+        while (objectIterator.hasNext()) {
+
+            XSSFCell xlsCell = xlsRow.createCell(colIndex++);
+            Object object = objectIterator.next();
+            xlsCell.setCellValue((String) object);
+        }
+
+        for (String column : columnsAfterData) {
+            xlsRow.createCell(colIndex++).setCellValue(column);
+        }
+
     }
 
     /**
@@ -73,7 +103,7 @@ public class XlsFileOutputStream extends OutputStream {
      * @param parsedRow to be written.
      * @param source    String representing source.
      */
-    private void writeRow(ParsedRow parsedRow, ParsedRowComparisonResult matchedResult, String source) {
+    private void writeDataRow(ParsedRow parsedRow, ParsedRowComparisonResult matchedResult, String source) {
         this.rowIndex++;
 
         // Set the values for the table
@@ -81,7 +111,10 @@ public class XlsFileOutputStream extends OutputStream {
 
         Iterator<Object> objectIterator = parsedRow.iterator();
         int colIndex = 0;
+
+        // Add info before data
         xlsRow.createCell(colIndex++).setCellValue(source);
+
         while (objectIterator.hasNext()) {
 
             Object object = objectIterator.next();
@@ -110,6 +143,11 @@ public class XlsFileOutputStream extends OutputStream {
                 }
             }
 
+        }
+
+        // Add info after data
+        if (matchedResult != null) {
+            xlsRow.createCell(colIndex++).setCellValue(matchedResult.getMistMatchCount());
         }
 
         // Set the maxColCount
