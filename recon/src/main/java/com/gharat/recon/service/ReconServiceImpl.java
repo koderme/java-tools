@@ -58,13 +58,14 @@ public class ReconServiceImpl implements ReconService {
         logger.info("generating output");
         Map<String, AllParsedRowComparisonResult> result = reconInternal(parsedRowMapPerStream);
         OutputStream outputStream = new XlsFileOutputStream("src/test/resources/recon.xlsx");
+        outputStream.preHook();
         result.forEach((key, allParsedRowComparisonResult) -> {
             logger.info("key: " + key);
             logger.info("allParsedRowComparisonResult:" + allParsedRowComparisonResult);
             outputStream.write(allParsedRowComparisonResult);
         });
 
-        outputStream.flush();
+        outputStream.postHook();
         logger.info("recon completed");
 
     }

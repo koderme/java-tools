@@ -23,19 +23,23 @@ public class XlsFileOutputStream extends OutputStream {
     private static final Logger logger = LogManager.getLogger(XlsFileOutputStream.class);
 
     String outputFilepath;
+
+    int rowIndex = -1;
+    int maxColCount = 0;
     XSSFWorkbook workbook;
     XSSFSheet sheet;
-    XSSFTable table;
-    int rowIndex = 0;
 
     private CellStyle cellStyleForUnMatched;
 
     public XlsFileOutputStream(String outputFilepath) {
         this.outputFilepath = outputFilepath;
+    }
+
+    @Override
+    public void preHook() {
         workbook = XlsxUtil.createWorkBook();
         sheet = XlsxUtil.createSheet(this.workbook, "details");
-        table = XlsxUtil.createTable(this.workbook, this.sheet, "comparison-table", "A1:C11");
-        CellStyle cellStyleForUnMatched =
+        this.cellStyleForUnMatched =
                 XlsxUtil.createCellStyle(this.workbook, IndexedColors.LIGHT_YELLOW, IndexedColors.AUTOMATIC);
     }
 
@@ -45,7 +49,13 @@ public class XlsFileOutputStream extends OutputStream {
         Iterator<ParsedRow> rhsRowIterator = compareResult.getRhsRowIterator();
         Iterator<ParsedRowComparisonResult> rhsComparisonResultIterator = compareResult.getRhsComparisonResultIterator();
 
-        // Write LHS
+        // Print only LHS header
+        if (this.rowIndex == -1) {
+            writeRow(compareResult.getLhsRow(), null, "lhs");
+            return;
+        }
+
+        // Print LHS
         writeRow(compareResult.getLhsRow(), null, "lhs");
 
         // Write RHS
@@ -64,12 +74,10 @@ public class XlsFileOutputStream extends OutputStream {
      * @param source    String representing source.
      */
     private void writeRow(ParsedRow parsedRow, ParsedRowComparisonResult matchedResult, String source) {
+        this.rowIndex++;
 
-        if (false) {
-            return;
-        }
         // Set the values for the table
-        XSSFRow xlsRow = this.sheet.createRow(this.rowIndex++);
+        XSSFRow xlsRow = this.sheet.createRow(this.rowIndex);
 
         Iterator<Object> objectIterator = parsedRow.iterator();
         int colIndex = 0;
@@ -99,15 +107,20 @@ public class XlsFileOutputStream extends OutputStream {
                     xlsCell.setCellStyle(this.cellStyleForUnMatched);
                 } else {
                     logger.info("setting matched value");
-                    //xlsCell.setCellStyle(this.cellStyleForMatched);
                 }
             }
 
         }
+
+        // Set the maxColCount
+        this.maxColCount = Integer.max(this.maxColCount, colIndex);
     }
 
     @Override
-    public void flush() throws IOException {
+    public void postHook() throws IOException {
+
+        XSSFTable table = XlsxUtil.createTable(this.workbook, this.sheet, "comparison-table", maxColCount, this.rowIndex + 1);
+
         // Save
         try (FileOutputStream fileOut = new FileOutputStream(this.outputFilepath)) {
             this.workbook.write(fileOut);

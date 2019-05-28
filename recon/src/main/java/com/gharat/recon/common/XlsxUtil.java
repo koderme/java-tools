@@ -3,6 +3,7 @@ package com.gharat.recon.common;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.util.AreaReference;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -23,34 +24,34 @@ public class XlsxUtil {
         return wb.createSheet(sheetName);
     }
 
-    public static XSSFTable createTable(XSSFWorkbook wb, XSSFSheet sheet, String tableName, String cellRegion) {
+    public static XSSFTable createTable(XSSFWorkbook wb, XSSFSheet sheet, String tableName, int totalCols, int totalRows) {
+
+        // Set auto filter on table
+        AreaReference dataRegion = new AreaReference(new CellReference(0, 0), new CellReference(totalRows - 1, totalCols - 1));
+        //sheet.setAutoFilter(CellRangeAddress.valueOf(dataRegion.formatAsString()));
 
         // Create
         XSSFTable table = sheet.createTable();
-        //table.setName(tableName);
-        //table.setDisplayName(tableName);
 
         // Create CTTable
         CTTable cttable = table.getCTTable();
 
         // Define styles
-        CTTableStyleInfo table_style = cttable.addNewTableStyleInfo();
-        table_style.setName("TableStyleMedium9");
+        CTTableStyleInfo tableStyle = cttable.addNewTableStyleInfo();
+        tableStyle.setName("TableStyleMedium9");
 
         // Define Style Options
-        table_style.setShowColumnStripes(false); //showColumnStripes=0
-        table_style.setShowRowStripes(true); //showRowStripes=1
+        tableStyle.setShowColumnStripes(false); //showColumnStripes=0
+        tableStyle.setShowRowStripes(true); //showRowStripes=1
 
         // Define the data range including headers
-        int totalCols = 5;
-        int totalRows = 10;
-        AreaReference my_data_range = new AreaReference(new CellReference(0, 0), new CellReference(totalRows - 1, totalCols - 1));
-        cttable.setRef(my_data_range.formatAsString());
+        cttable.setRef(dataRegion.formatAsString());
+
 
         // Other attributes
         cttable.setName("name");
         cttable.setDisplayName("disp-name");
-        cttable.setId(1);
+        cttable.setId(10L);
 
         // Add header cols
         CTTableColumns columns = cttable.addNewTableColumns();
@@ -62,6 +63,7 @@ public class XlsxUtil {
             column.setName("Column" + i);
             column.setId(i + 1);
         }
+
         return table;
     }
 

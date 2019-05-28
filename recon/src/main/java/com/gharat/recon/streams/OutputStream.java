@@ -6,7 +6,15 @@ import java.io.IOException;
 
 public abstract class OutputStream {
 
+    public void preHook() {
+    }
+
+    ;
+
     public abstract void write(AllParsedRowComparisonResult compareResult);
 
-    public abstract void flush() throws IOException;
+    public void postHook() throws IOException {
+    }
+
+    ;
 }
